@@ -23,16 +23,11 @@ class Particle:
 
 
 @dataclass
-class Attom:
-    name: str
-    Z: int
+class Attom(Particle):
     A: int
     R: Quantity["length"]
 
-    @property
-    def m(self)-> Quantity["mass"]:
-        return self.A * const.nuclee_mass_estimation
-    
-    def __add__(self, other: Union['Particle', 'Attom']):
-        return Particle(self.name + '+' + other.name, 1/(1/self.m + 1/other.m), self.Z + other.Z)
-    
+    def __init__(self, name: str, Z: int, A: int, R: Quantity["length"]):
+        super().__init__(name, A * const.nuclee_mass_estimation, Z)
+        self.A = A
+        self.R = R
