@@ -10,11 +10,13 @@ class Particle:
     Z: int
     
     @property
-    def a_B(self) -> Quantity["length"]:
-        return const.hbarc / (self.m * const.alpha * self.Z * const.c**2)
+    def a_B(self) -> Quantity["fm"]:
+        return (const.hbarc / (self.m * const.alpha * self.Z * const.c**2)).to('fm')
     
-    def R_y(self) -> Quantity["energy"]:
-        return const.alpha**2 * self.Z**2 * self.m * const.c**2 / 2
+    @property
+    def R_y(self) -> Quantity["fm"]:
+        return (const.alpha**2 * self.Z**2 * self.m * const.c**2 / 2).to('MeV')
+
 
     def __add__(self, other: Union['Particle', 'Attom']):
         return Particle(self.name + '+' + other.name, 1/(1/self.m + 1/other.m), self.Z + other.Z)
