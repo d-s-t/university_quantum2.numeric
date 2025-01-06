@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from astropy.units.quantity import Quantity
 from constants import const
-from typing import Union, Callable
-import numpy as np
+from typing import Union
 
 @dataclass
 class Particle:
