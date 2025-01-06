@@ -1,4 +1,4 @@
-from constants import const
+from utils import const, plotly_show_config, to_latex
 from preset import H1, H2, He4, K
 import numpy as np
 from sys import float_info
@@ -17,35 +17,36 @@ def q3_1_2():
     fig = go.Figure()
     for i in range(len(E)):
         fig.add_trace(go.Scatter(x=r, y=u[:,i], mode='lines', name=f'E={E[i]}'))
-    fig.update_layout(title=r'$ \text{Q3.1.2 - } {}^{1}\!H \text{ base state } \left(n=1,l=0\right) $',
-                      xaxis_title=r'$ r \left[fm\right] $',
-                      yaxis=dict(title=r'$ u\left(r\right) \left[fm\right] $', range=[-100, 100]))
+    fig.update_layout(title=r'$ \text{Q3.1.2 - } {}^{1}\!H \text{ base state } \left(n=1,l=0\right) $') \
+        .update_xaxes(title=r'$ r \; \left[a_{B} = '+ to_latex(m.a_B) + r'\right] $') \
+        .update_yaxes(title=r'$ u\left(r\right) \; \left[fm\right] $', range=[-100, 100])
     # fig.write_image("/plots/q3.1.2.svg")
-    fig.show()
+    plotly_show_config['toImageButtonOptions']['filename'] = 'q3.1.2'
+    fig.show(config=plotly_show_config)
+    plotly_show_config['toImageButtonOptions']['filename'] = 'unset'
 
 
 def q3_1_4():
     v = lambda r: (- const.alpha * H1.Z * const.hbarc / r).to('MeV')
     m = Numerov(H1, v, n=1, l=0)
-    r = np.linspace(float_info.epsilon, 10, int(1e4))
-    E = m.find_root(-1., -0.98, r)
-    print(E)
-    u = m.ure(r, E)
+    Ns = np.array([int(1e2), int(1e3), int(1e4), int(1e5)])
+    etta = np.zeros(Ns.shape)
+    for i, N in enumerate(Ns):
+        r = np.linspace(float_info.epsilon, 20, N)
+        E = m.find_root(-1.05, -0.95, r)[0]
+        etta[i] = m.etta(E)
 
     from plotly import graph_objects as go
-    fig = go.Figure()
-    for i in range(len(E)):
-        fig.add_trace(go.Scatter(x=r, y=u[:,i], mode='lines', name=f'E={E[i]}'))
-    fig.update_layout(title=r'$ \text{Q3.1.4 - } {}^{1}\!H \text{ base state } \left(n=1,l=0\right) $',
-                      xaxis_title=r'$ r \left[fm\right] $',
-                      yaxis=dict(title=r'$ u\left(r\right) \left[fm\right] $'
-                                #  range=[-100, 100],
-                                #    type='log'
-                                   ))
-    # fig.write_image(r"\plots\q3.1.4.png")
-    fig.show()
+    fig = go.Figure() \
+        .add_trace(go.Scatter(x=Ns, y=etta, mode='lines+markers')) \
+        .update_layout(title=r'$ \text{Q3.1.4 - } {}^{1}\!H \text{ base state } \left(n=1,l=0\right) $') \
+        .update_xaxes(type='log', title=r'$ N $') \
+        .update_yaxes(type='log', title=r'$ \eta $')
+    plotly_show_config['toImageButtonOptions']['filename'] = 'q3.1.4'
+    fig.show(config=plotly_show_config)
+    plotly_show_config['toImageButtonOptions']['filename'] = 'unset'
 
 
 if __name__ == '__main__':
-    #q3_1_2()
+    # q3_1_2()
     q3_1_4()
