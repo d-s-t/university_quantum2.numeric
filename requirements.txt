@@ -2,3 +2,5 @@ numpy
 scipy
 plotly
 astropy
+tqdm
+kaleido
