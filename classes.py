@@ -15,16 +15,8 @@ class Particle:
         return (const.hbarc / (self.m * const.alpha * self.Z * const.c**2)).to('fm')
     
     @property
-    def R_y(self) -> Quantity["fm"]:
+    def R_y(self) -> Quantity["MeV"]:
         return (const.alpha**2 * self.Z**2 * self.m * const.c**2 / 2).to('MeV')
-
-    def W(self,
-          E: Quantity["MeV"],
-          l: int,
-          V: Callable[[np.ndarray[Quantity["fm"]]], np.ndarray[Quantity["MeV"]]],
-          r: np.ndarray[Quantity["fm"]]
-          ) -> np.ndarray[Quantity["fm-2"]]:
-        return (2 * self.m * (E-V(r)) / const.hbar**2 - l * (l+1) / r**2).to('fm-2')
 
     def __add__(self, other: Union['Particle', 'Attom']):
         return Particle(self.name + '+' + other.name, 1/(1/self.m + 1/other.m), self.Z + other.Z)
