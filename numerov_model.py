@@ -29,13 +29,12 @@ class Numerov:
         r = r * self.particle.a_B
         dr = r[1] - r[0]
         u = np.zeros((*r.shape, *E.shape)) * dr.unit
-        E = E[:, np.newaxis] * self.particle.R_y
+        E = E * self.particle.R_y
         u[1,:] = dr
-        w = self.W(E, r)
+        w = dr**2 * self.W(E, r[:, np.newaxis]) / 12
         interations = tqdm(range(2, len(r))) if progress_bar else range(2, len(r))
         for i in interations:
-            tmp = ((2 - dr**2 * w[:,i-1] * 5 / 6) * u[i-1,:] - (1 + dr**2 * w[:,i-2] / 12) * u[i-2,:]) / (1 + dr**2 * w[:,i] / 12)
-            u[i, :] = tmp
+            u[i, :] = ((2 - w[i-1,:] * 10) * u[i-1,:] - (1 + w[i-2,:]) * u[i-2,:]) / (1 + w[i,:])
         return u
     
     def find_root(self, E_max: float, E_min: float,
