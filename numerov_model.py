@@ -1,16 +1,10 @@
-from constants import const
+from constants import const, flatten
 from astropy.units.quantity import Quantity
 import numpy as np
 from typing import Callable
 from classes import Particle
 from tqdm import tqdm
-from sys import float_info
-import functools
-import operator
-
-def flatten(a):
-    return functools.reduce(operator.iconcat, a, [])
-
+from sys import float_info  
 
 class Numerov:
     def __init__(self, p: Particle, V: Callable[[np.ndarray[Quantity["fm"]]], np.ndarray[Quantity["MeV"]]], n: int, l: int):
