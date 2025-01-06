@@ -1,4 +1,4 @@
-from constants import const, flatten
+from utils import const, flatten
 from astropy.units.quantity import Quantity
 import numpy as np
 from typing import Callable

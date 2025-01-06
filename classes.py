@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from astropy.units.quantity import Quantity
-from constants import const
+from utils import const
 from typing import Union
 
 @dataclass
