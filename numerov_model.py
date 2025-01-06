@@ -5,6 +5,11 @@ from typing import Callable
 from classes import Particle
 from tqdm import tqdm
 from sys import float_info
+import functools
+import operator
+
+def flatten(a):
+    return functools.reduce(operator.iconcat, a, [])
 
 
 class Numerov:
@@ -39,40 +44,30 @@ class Numerov:
     
     def find_root(self, E_max: float, E_min: float,
                   r: np.ndarray[float],
-                  N: int = 1,
+                  N: int = 10,
                   ) -> np.ndarray[float]:
         E_bounds = np.linspace(E_min, E_max, N + 1)
-        u = self.ure(r, E_bounds, progress_bar=False)
-        return np.array([self.energy_binary_search(E_bounds[i], E_bounds[i+1], u[-1, i], u[-1, i+1], r) for i in range(N) if u[-1, i]*u[-1, i+1]<0]).flatten()
+        u = self.ure(r, E_bounds, progress_bar=False)[-1,:]
+        u_min, u_max = u[0], u[-1]
+        print(f"diff={abs(E_max - E_min):.3e}, {u_min=:.3e}, {u_max=:.3e}", end='\r', flush=True)
+        if abs(E_max - E_min) <= float_info.epsilon:
+            print()
+            return [E_min] if abs(u_min) < abs(u_max) else [E_max]
+        return flatten([self.find_root(E_bounds[i+1], E_bounds[i], r, N) for i in range(N) if u[i]*u[i+1]<0])
         
-
-    def energy_binary_search(self, E1: float, E2: float, u1: Quantity["fm"], u2: Quantity["fm"], r: np.ndarray[float]):
-        if u1*u2 > 0:
-            raise ValueError('u1 and u2 should have different signs')
-        
-        E1, E2, u1, u2 = E1.reshape(1), E2.reshape(1), u1.reshape(1), u2.reshape(1)
-        
-        if u1.value == 0:
-            return E1
-        if u2.value == 0:
-            return E2
-
-        while abs(E2 - E1) > float_info.epsilon:
-            print(f"difference: {abs(E2 - E1)[0]:.3e}, u1: {u1[0]:.3e}, u2: {u2[0]:.3e}", end='\r', flush=True)
-            E_mid = (E1 + E2) / 2
-            u = self.ure(r, E_mid, progress_bar=False)
-            u_mid = u[-1]
-            if u_mid.value == 0:
-                return E_mid
-            if u_mid * u1 < 0:
-                E2 = E_mid
-                u2 = u_mid
-            else:
-                E1 = E_mid
-                u1 = u_mid
-        print()
-        return (E1 if abs(u1) < abs(u2) else E2)[0]
-
     
+    def etta(self, E: float):
+        return abs(1 + self.n**2 * E)
+
+
+    @property
+    def a_B(self):
+        return self.particle.a_B
+    
+    @property
+    def R_y(self):
+        return self.particle.R_y
+    
+
     def __str__(self):
         return f"particle {self.particle.name} in state |n={self.n},l={self.l}⟩"
