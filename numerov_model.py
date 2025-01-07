@@ -7,6 +7,14 @@ from tqdm import tqdm
 from sys import float_info  
 
 class Numerov:
+    """
+    Numerov model for quantum mechanics for 2 particles for equations of the form:
+    -ħ²/2μ ∇²u + V(r)u = Eu
+    where it gets the form:
+    d²u/dr² + [(E- V(r))(2μ/ħ²) - (l(l+1)/r²)]u = 0
+    and we define the W function as:
+    W(r) = (E - V(r))(2μ/ħ²) - l(l+1)/r²
+    """
     def __init__(self,
                  p: Particle,
                  V: Callable[[np.ndarray[Quantity["fm"]]], np.ndarray[Quantity["MeV"]]],
@@ -19,8 +27,9 @@ class Numerov:
             Potential energy function
         n: int
             Principal quantum number
-        l: np.ndarray[int]
+        l: np.ndarray[int] (optional)
             Azimuthal quantum number
+            Defaults to np.arange(n, dtype=int)
         """
         self.particle = p
         self.V = V
@@ -32,6 +41,8 @@ class Numerov:
           r: np.ndarray[Quantity["fm"]]
           ) -> np.ndarray[Quantity["fm-2"]]:
         """
+        the W function for the given energy and distance
+
         E: np.ndarray[Quantity["MeV"]]
             Energy of the particle
             shape: (M,)
@@ -53,6 +64,18 @@ class Numerov:
             E: np.ndarray[float],
             progress_bar: bool = True
             ) -> Quantity["fm"]:
+        """
+        Numerov method to solve the equation for the wave function
+
+        r: np.ndarray[float]
+            Array of distances in fm
+            shape: (N,)
+        E: np.ndarray[float]
+            Array of energies in MeV
+            shape: (M,)
+        progress_bar: bool
+            Whether to show a progress bar or not
+        """
         r = r * self.particle.a_B
         dr = r[1] - r[0]
         u = np.zeros((*r.shape, *E.shape)) * dr.unit
@@ -68,6 +91,19 @@ class Numerov:
                   r: np.ndarray[float],
                   N: int = 10,
                   ) -> np.ndarray[float]:
+        """
+        find the eneergy where the wave function u(R,E) = 0
+
+        E_max: float
+            Maximum energy to search for the root as a multiple of the Rydberg energy
+        E_min: float
+            Minimum energy to search for the root as a multiple of the Rydberg energy
+        r: np.ndarray[float]
+            Array of distances in fm
+            shape: (M,)
+        N: int (optional)
+            Number of devisions to make in the search for the root
+        """
         E_bounds = np.linspace(E_min, E_max, N + 1)
         u = self.ure(r, E_bounds, progress_bar=False)[-1,:]
         u_min, u_max = u[0], u[-1]
@@ -79,6 +115,9 @@ class Numerov:
         
     
     def etta(self, E: float):
+        """
+        relative error of the energy
+        """
         return abs(1 + self.n**2 * E)
 
 
