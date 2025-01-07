@@ -5,6 +5,19 @@ from typing import Union
 
 @dataclass
 class Particle:
+    """
+    Particle
+    name: str
+        Name of the particle
+    m: Quantity["mass"]
+        Mass of the particle
+    Z: int
+        Charge of the particle
+    property a_B: Quantity["length"]
+        Bohr radius of the particle
+    property R_y: Quantity["energy"]
+        Rydberg energy of the particle
+    """
     name: str
     m: Quantity["mass"]
     Z: int
@@ -23,6 +36,13 @@ class Particle:
 
 @dataclass
 class Attom(Particle):
+    """
+    Atom(Particle)
+    A: int
+        Mass number of the atom (number of nucleons)
+    R: Quantity["length"]
+        Radius of the atom
+    """
     A: int
     R: Quantity["length"]
 
