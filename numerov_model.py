@@ -114,7 +114,7 @@ class Numerov:
         return flatten([self.find_root(E_bounds[i+1], E_bounds[i], r, N) for i in range(N) if u[i]*u[i+1]<0])
         
     
-    def etta(self, E: float):
+    def relative_error(self, E: float):
         """
         relative error of the energy
         """
