@@ -7,17 +7,45 @@ from tqdm import tqdm
 from sys import float_info  
 
 class Numerov:
-    def __init__(self, p: Particle, V: Callable[[np.ndarray[Quantity["fm"]]], np.ndarray[Quantity["MeV"]]], n: int, l: int):
+    def __init__(self,
+                 p: Particle,
+                 V: Callable[[np.ndarray[Quantity["fm"]]], np.ndarray[Quantity["MeV"]]],
+                 n: int,
+                 l: np.ndarray[int]=None):
+        """
+        p: Particle
+            Particle to be used in the model
+        V: Callable[[np.ndarray[Quantity["fm"]]], np.ndarray[Quantity["MeV"]]]
+            Potential energy function
+        n: int
+            Principal quantum number
+        l: np.ndarray[int]
+            Azimuthal quantum number
+        """
         self.particle = p
         self.V = V
         self.n = n
-        self.l = l
+        self.l = l or np.arange(n, dtype=int)
 
     def W(self,
-          E: Quantity["MeV"],
+          E: np.ndarray[Quantity["MeV"]],
           r: np.ndarray[Quantity["fm"]]
           ) -> np.ndarray[Quantity["fm-2"]]:
-        return (2 * self.particle.m * (E-self.V(r)) / const.hbar**2 - self.l * (self.l+1) / r**2).to('fm-2')
+        """
+        E: np.ndarray[Quantity["MeV"]]
+            Energy of the particle
+            shape: (M,)
+        r: np.ndarray[Quantity["fm"]]
+            Array of distances
+            shape: (N,)
+        
+        returns: np.ndarray[Quantity["fm-2"]]
+            W function
+            shape: (N, M, L)
+            where L is the number of angular momentum quantum numbers
+        """
+        r = r[:, np.newaxis]
+        return (2 * self.particle.m * (E-self.V(r))[:, :, np.newaxis] / const.hbar**2 - (self.l * (self.l+1) / r**2)[:, np.newaxis, :]).to('fm-2')
 
 
     def ure(self,
@@ -29,8 +57,8 @@ class Numerov:
         dr = r[1] - r[0]
         u = np.zeros((*r.shape, *E.shape)) * dr.unit
         E = E * self.particle.R_y
-        u[1,:] = dr
-        w = dr**2 * self.W(E, r[:, np.newaxis]) / 12
+        u[1,:] = dr**(self.l+1)
+        w = dr**2 * self.W(E, r) / 12
         interations = tqdm(range(2, len(r))) if progress_bar else range(2, len(r))
         for i in interations:
             u[i, :] = ((2 - w[i-1,:] * 10) * u[i-1,:] - (1 + w[i-2,:]) * u[i-2,:]) / (1 + w[i,:])
