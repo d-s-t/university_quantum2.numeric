@@ -7,7 +7,7 @@ from numerov_model import Numerov
 
 def q3_1_2():
     v = lambda r: (- const.alpha * H1.Z * const.hbarc / r).to('MeV')
-    m = Numerov(H1, v, n=1, l=0)
+    m = Numerov(H1, v, n=1)
     N = int(1e4)
     r = np.linspace(float_info.epsilon , 10, N)
     E = np.array([-1.1, -1.05, -1, -0.95, -0.9])
@@ -28,7 +28,7 @@ def q3_1_2():
 
 def q3_1_4():
     v = lambda r: (- const.alpha * H1.Z * const.hbarc / r).to('MeV')
-    m = Numerov(H1, v, n=1, l=0)
+    m = Numerov(H1, v, n=1)
     Ns = np.array([int(1e2), int(1e3), int(1e4), int(1e5)])
     etta = np.zeros(Ns.shape)
     for i, N in enumerate(Ns):
