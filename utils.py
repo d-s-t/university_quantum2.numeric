@@ -15,12 +15,11 @@ const.hbarc = (const.hbar * const.c).to(units.MeV * units.fm)
 plotly_show_config = config={'toImageButtonOptions': {'format': 'svg',
                                                        'filename': 'unset',
                                                        'width': 600, 'height': 450}}
-pio.templates["transparent"] = pio.templates[pio.templates.default].update(
+pio.templates[pio.templates.default].update(
     layout=dict(
         paper_bgcolor='rgba(0,0,0,0)'
     )
 )
-pio.templates.default = "transparent"
 
 
 def to_latex(q: Quantity, presision=3):
