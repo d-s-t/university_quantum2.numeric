@@ -78,9 +78,9 @@ class Numerov:
         """
         r = r * self.particle.a_B
         dr = r[1] - r[0]
-        u = np.zeros((*r.shape, *E.shape)) * dr.unit
+        u = np.zeros((*r.shape, *E.shape, *self.l.shape)) * dr.unit
         E = E * self.particle.R_y
-        u[1,:] = dr**(self.l+1)
+        u[1] = dr**(self.l+1)
         w = dr**2 * self.W(E, r) / 12
         interations = tqdm(range(2, len(r))) if progress_bar else range(2, len(r))
         for i in interations:
