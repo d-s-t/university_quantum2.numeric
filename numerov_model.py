@@ -85,7 +85,7 @@ class Numerov:
         interations = tqdm(range(2, len(r))) if progress_bar else range(2, len(r))
         for i in interations:
             u[i, :] = ((2 - w[i-1,:] * 10) * u[i-1,:] - (1 + w[i-2,:]) * u[i-2,:]) / (1 + w[i,:])
-        return u
+        return u / np.sqrt(np.trapezoid(u**2, r, axis=0))
     
     def find_root(self, E_max: float, E_min: float,
                   r: np.ndarray[float],
