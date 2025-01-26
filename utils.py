@@ -27,3 +27,12 @@ def to_latex(q: Quantity, presision=3):
 
 def flatten(a):
     return functools.reduce(operator.iconcat, a, [])
+
+
+def plotly_export(fig, filename):
+    fig.write_image(f"./plots/{filename}.svg", width=800, height=450,format='svg',engine='kaleido')
+    fig.write_image(f"./plots/{filename}.png", width=800, height=450,format='png',engine='kaleido')
+    plotly_show_config['toImageButtonOptions']['filename'] = filename
+    fig.write_html(f"./plots/{filename}.html", config=plotly_show_config)
+    fig.show(config=plotly_show_config)
+    plotly_show_config['toImageButtonOptions']['filename'] = 'unset'
