@@ -1,10 +1,8 @@
-from utils import const, flatten
+from utils import const, progress_bar_range
 from astropy.units.quantity import Quantity
 import numpy as np
 from typing import Callable
 from classes import Particle
-from tqdm import tqdm
-from sys import float_info  
 from pandas import DataFrame
 
 class Numerov:
@@ -62,10 +60,10 @@ class Numerov:
         return (2 * self.particle.m * (E-self.V(r)) / const.hbar**2 - (self.l * (self.l+1) / r**2)).to('fm-2')
 
 
-    def ure(self,
+    def u(self,
             r: np.ndarray[float],
             E: np.ndarray[float],
-            progress_bar: bool = True
+            range=progress_bar_range
             ) -> Quantity["fm"]:
         """
         Numerov method to solve the equation for the wave function
@@ -76,19 +74,19 @@ class Numerov:
         E: np.ndarray[float]
             Array of energies in MeV
             shape: (M,) or (M, L)
-        progress_bar: bool
-            Whether to show a progress bar or not
+        range: 
+            the range method to use (can be range or tqdm, or any other method that can iterate over a range)
         """
         r = r * self.particle.a_B
         dr = r[1] - r[0]
-        u = np.zeros((r.size, E.shape[0], self.l.size)) * dr.unit
+        u = np.zeros((r.size, E.shape[0], self.l.size))
         E = E * self.particle.R_y
-        u[1] = dr.unit * dr.value**(self.l[0]+1)
-        w = dr**2 * self.W(E, r) / 12
-        interations = tqdm(range(2, len(r))) if progress_bar else range(2, len(r))
-        for i in interations:
-            u[i, :] = ((2 - w[i-1,:] * 10) * u[i-1,:] - (1 + w[i-2,:]) * u[i-2,:]) / (1 + w[i,:])
-        return (u / np.sqrt(np.trapezoid(u**2, r, axis=0))).value
+        u[1] = dr.value**(self.l[0]+1)
+        w = self.W(E, r)
+        w = dr**2 * w / 12
+        for i in range(2, len(r)):
+            u[i, :] = ((2 - w[i-1,:] * 10) * u[i-1,:] - (1 + w[i-2,:]) * u[i-2,:]) / (1 + w[i,:]).value
+        return u / np.sqrt(np.trapezoid(u**2, r, axis=0)).value
     
     def find_root(self, E_max: float, E_min: float, r: np.ndarray[float], N: int = 10):
         """
@@ -163,7 +161,7 @@ class Numerov:
         E_bounds = np.linspace(E_min, E_max, N + 1)
         # if len(E_bounds.shape) == 1:
         #     E_bounds = E_bounds.reshape(-1, 1) * np.ones(self.l.size)
-        u = self.ure(r, E_bounds, progress_bar=False)[-1]
+        u = self.u(r, E_bounds, range=range)[-1]
         # u shape: (N, L)
         # u_min, u_max shape: (L,)
         for i in range(N):

@@ -12,14 +12,26 @@ const.nuclee_mass_estimation = 931.49432 * units.MeVc2
 
 const.hbarc = (const.hbar * const.c).to(units.MeV * units.fm)
 
-plotly_show_config = config={'toImageButtonOptions': {'format': 'svg',
-                                                       'filename': 'unset',
-                                                       'width': 600, 'height': 450}}
-pio.templates[pio.templates.default].update(
-    layout=dict(
-        paper_bgcolor='rgba(0,0,0,0)'
-    )
-)
+plotly_show_config = {
+    'toImageButtonOptions': {
+        'format': 'svg',
+        'filename': 'unset',
+        'width': 800, 'height': 450
+    },
+    "editable": True,
+    # "addButtonToModeBar": [
+    #     {
+    #         'name': 'save_png',
+    #         'title': 'Save as PNG',
+    #         'icon': ,
+    #         'click': pio.base_renderers.PngRenderer(800, 450, 2).to_mimebundle#lambda fig: pio.write_image(fig, f"./plots/{plotly_show_config['toImageButtonOptions']['filename']}.png", width=800, height=450, format='png', engine='kaleido', scale=2)
+    #     }
+    # ]
+}
+
+# make new template with transparent background
+# pio.templates.add(go.layout.Template(name='transparent', layout=go.Layout(paper_bgcolor='rgba(0,0,0,0)')))
+
 
 
 def to_latex(q: Quantity, presision=3):
@@ -30,9 +42,47 @@ def flatten(a):
 
 
 def plotly_export(fig, filename):
-    fig.write_image(f"./plots/{filename}.svg", width=800, height=450,format='svg',engine='kaleido')
-    fig.write_image(f"./plots/{filename}.png", width=800, height=450,format='png',engine='kaleido')
+    fig.update_layout(margin=dict(t=50, b=0, l=0, r=0), width=800, height=450)
+    fig.write_image(f"./plots/{filename}.svg", width=800, height=450,format='svg', engine='kaleido')
+    fig.write_image(f"./plots/{filename}.png", width=800, height=450, format='png', engine='kaleido', scale=2)
     plotly_show_config['toImageButtonOptions']['filename'] = filename
     fig.write_html(f"./plots/{filename}.html", config=plotly_show_config)
-    fig.show(config=plotly_show_config)
+    if is_notebook():
+        from IPython.display import display, SVG
+        display(SVG(filename=f"./plots/{filename}.svg"))
+    else:
+        fig.show(config=plotly_show_config)
     plotly_show_config['toImageButtonOptions']['filename'] = 'unset'
+
+
+def progress_bar_range(*n):
+    """
+    this is generator that uses IPython.display to show a progress bar for the range
+    """
+    if is_notebook():
+        from tqdm.notebook import trange
+    else:
+        from tqdm import trange
+    return trange(*n)
+    
+
+def is_notebook():
+    from IPython import get_ipython
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True  # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False  # Probably standard Python interpreter
+
+
+if __name__ == "__main__":
+    from time import sleep
+    for i in progress_bar_range(10):
+        sleep(0.1)
+
+#go.Figure().show(config=plotly_show_config)

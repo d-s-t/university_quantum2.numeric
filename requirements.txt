@@ -3,7 +3,7 @@ scipy
 plotly
 astropy
 tqdm
-kaleido==0.1.0post1
+kaleido==0.1.0post1 # newer versions have a bug with plotly
 nbformat
 ipykernel
 pandas
