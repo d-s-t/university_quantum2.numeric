@@ -41,15 +41,16 @@ def flatten(a):
     return functools.reduce(operator.iconcat, a, [])
 
 
-def plotly_export(fig, filename):
+def plotly_export(fig, filename, **kwargs):
     fig.update_layout(margin=dict(t=50, b=0, l=0, r=0), width=800, height=450)
     fig.write_image(f"./plots/{filename}.svg", width=800, height=450,format='svg', engine='kaleido')
     fig.write_image(f"./plots/{filename}.png", width=800, height=450, format='png', engine='kaleido', scale=2)
+    fig.write_image(f"./plots/{filename}.pdf", width=800, height=450, format='pdf', engine='kaleido', scale=2)
     plotly_show_config['toImageButtonOptions']['filename'] = filename
     fig.write_html(f"./plots/{filename}.html", config=plotly_show_config)
     if is_notebook():
         from IPython.display import display, SVG
-        display(SVG(filename=f"./plots/{filename}.svg"))
+        display(SVG(filename=f"./plots/{filename}.svg"), **kwargs)
     else:
         fig.show(config=plotly_show_config)
     plotly_show_config['toImageButtonOptions']['filename'] = 'unset'
