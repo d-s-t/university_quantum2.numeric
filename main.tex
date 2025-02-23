@@ -50,11 +50,25 @@ $$W_k = \frac{2\mu}{\hbar^2}\left(E-V\left(r_n\right)\right) - \frac{l(l+1)}{r^2
 \begin{figure}[h]\label{fig:1.2}
     \centering
     \includegraphics[width=\linewidth]{plots/1.2.pdf}
-    \caption{התוצאות עבור אנרגיות שונות} % Add a caption
+    \caption{התוצאות עבור אנרגיות שונות}
 \end{figure}
 ניתן לראות שרק עבור $E = -1 R_y$ הפתרוןדועך ל־0 באינסוף.
 
-\subsection{מציאת שורשים}
-עבור חיפוש בתחום $-1.05 < \frac{E}{R_y} < -0.95$ נמצא שורש ב־$E = -0.98 R_y$.
+\subsection{מציאת שורשים}\label{subsec:1.2}
+עבור חיפוש בתחום $-1.05 < \frac{E}{R_y} < -0.95$ נמצא שורש ב־$E = -0.999998 R_y$.
+\begin{figure}[h]\label{fig:1.3}
+    \centering
+    \includegraphics[width=\linewidth]{plots/1.3.pdf}
+    \caption{פונקציית הגל עבור אנרגיה שנמצאה}
+\end{figure}
+
+\subsection{ההשפעה של מספר הנקודות N על הדיוק של הפתרון}
+עבור הנתונים $R=20 a_B $ ועבור מספר משתנה של נקודות $N = 100, 1000, 10000, 100000$ ביצעתי את החישוב הנומרי לתחום האנרגיה של רמת היסוד (כמו ב\ref{subsec:1.2}). 
+\begin{figure}[h]\label{fig:1.4}
+    \centering
+    \includegraphics[width=\linewidth]{plots/1.4.pdf}
+    \caption{השפעת מספר הנקודות על הדיוק של הפתרון}
+\end{figure}
+
 
 \end{document}
