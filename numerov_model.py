@@ -133,6 +133,11 @@ class Numerov:
             if u[i]*u[i+1]<0:
                 self.find_root_helper(E_list, E_bounds[i], E_bounds[i+1], r, D, u[i], u[i+1])
 
+    def find_bound_energy_alt(self, r: np.ndarray[float], E_max: float, D: int = 10):
+        """
+        """
+        pass        
+
     @property
     def a_B(self):
         return self.system.a_B

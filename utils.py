@@ -59,6 +59,11 @@ def plotly_export(fig, filename, **kwargs):
         fig.show(config=plotly_show_config)
     plotly_show_config['toImageButtonOptions']['filename'] = 'unset'
 
+def derivative_o4(u, dx):
+    """
+    Calculate the derivative of u with respect to x with acuracy O(dx^4)
+    """
+    return (-u[2:] + 8*u[1:-1] - 8*u[1:-1] + u[:-2]) / (12*dx)
 
 def progress_bar_range(*n):
     """
@@ -105,5 +110,7 @@ if __name__ == "__main__":
     from time import sleep
     for i in progress_bar_range(10):
         sleep(0.1)
+
+
 
 #go.Figure().show(config=plotly_show_config)
