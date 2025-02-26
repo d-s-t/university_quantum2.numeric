@@ -6,7 +6,7 @@ import operator
 import plotly.io as pio
 from plotly import graph_objects as go
 
-units.MeVc2 = units.def_unit('MeV / c2', units.MeV/const.c**2, format={'latex': r'\mathrm{MeV}/c^2'})
+units.MeVc2 = units.def_unit('MeV / c2', units.MeV/const.c**2, format={'latex': r'MeV/c^2'})
 
 const.nuclee_mass_estimation = 931.49432 * units.MeVc2
 
@@ -34,8 +34,12 @@ plotly_show_config = {
 
 
 
-def to_latex(q: Quantity, presision=3):
-    return q.to_string(format='latex', precision=presision).replace("$", "")
+def to_latex(q: Quantity, f:str):
+    v = format(q.value, f)
+    if 'e' in v:
+        v,ex = v.split('e')
+        v = fr"{v} \times 10^{{{ex}}}"
+    return rf"{v} \; {q.unit._repr_latex_()[1:-1]}"
 
 def flatten(a):
     return functools.reduce(operator.iconcat, a, [])
