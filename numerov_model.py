@@ -2,7 +2,7 @@ from utils import const, progress_bar_range
 from astropy.units.quantity import Quantity
 import numpy as np
 from typing import Callable
-from classes import Particle
+from classes import TwoBodySystem
 from pandas import DataFrame
 
 class Numerov:
@@ -14,10 +14,10 @@ class Numerov:
     and we define the W function as:
     W(r) = (E - V(r))(2μ/ħ²) - l(l+1)/r²
     """
-    def __init__(self,
-                 p: Particle,
-                 V: Callable[[np.ndarray[Quantity["fm"]]], np.ndarray[Quantity["MeV"]]],
-                 l: int):
+    def __init__(self, 
+                 sys: TwoBodySystem,
+                 W: Callable[[np.ndarray[float], np.ndarray[float]], np.ndarray[float]]
+                 ):
         """
         p: Particle
             Particle to be used in the model
@@ -29,38 +29,15 @@ class Numerov:
             Azimuthal quantum number
             Defaults to np.arange(n, dtype=int)
         """
-        self.particle = p
-        self.V = V
-        self.l = l
-
-    def W(self,
-          E: np.ndarray[Quantity["MeV"]],
-          r: np.ndarray[Quantity["fm"]]
-          ) -> np.ndarray[Quantity["fm-2"]]:
-        """
-        the W function for the given energy and distance
-
-        E: np.ndarray[Quantity["MeV"]]
-            Energy of the particle
-            shape: (M,) or (M, L)
-        r: np.ndarray[Quantity["fm"]]
-            Array of distances
-            shape: (N,)
-        
-        returns: np.ndarray[Quantity["fm-2"]]
-            W function
-            shape: (N, M, L)
-            where L is the number of angular momentum quantum numbers
-        """
-        r = r[:, np.newaxis]
-        # E = E.reshape(1, E.shape[0], -1)
-        return (2 * self.particle.m * (E-self.V(r)) / const.hbar**2 - (self.l * (self.l+1) / r**2)).to('fm-2')
+        self.W = W
+        self.system = sys
 
 
     def u(self,
             r: np.ndarray[float],
             E: np.ndarray[float],
-            range=progress_bar_range
+            range=progress_bar_range,
+            u1: np.ndarray[float] = 1,
             ) -> np.ndarray[float]:
         """
         Numerov method to solve the equation for the wave function
@@ -78,18 +55,19 @@ class Numerov:
             Array of wave functions for each energy in each distance
             shape: (N, M)
         """
-        r = r * self.particle.a_B
+        r = r * self.a_B
         dr = r[1] - r[0]
-        u = np.zeros_like(r) if np.isscalar(E) else np.zeros((r.size, E.size))
-        E = E * self.particle.R_y
-        u[1] = dr.value**(self.l+1)
+        u = np.zeros_like(r.value) if np.isscalar(E) else np.zeros((r.size, E.size))
+        u[1] = u1
+        u = u * dr.unit**-0.5
+        E = E * self.R_y
         w = self.W(E, r)
         w = dr**2 * w / 12
         w1 = 1 + w
         w2 = 2 - 10 * w
         for i in range(2, len(r)):
             u[i] = (w2[i-1] * u[i-1] - w1[i-2] * u[i-2]) / w1[i]
-        norm = np.sqrt(np.trapezoid(u**2, r, axis=0)).value
+        norm = np.sqrt(np.trapezoid(u**2, r, axis=0))
         return u / norm
     
     def find_root(self, E_max: float, E_min: float, r: np.ndarray[float], D: int = 10):
@@ -154,21 +132,13 @@ class Numerov:
         for i in range(D):
             if u[i]*u[i+1]<0:
                 self.find_root_helper(E_list, E_bounds[i], E_bounds[i+1], r, D, u[i], u[i+1])
-        
-    
-    def relative_error(self, E: float, n: int) -> float:
-        """
-        relative error of the energy
-        """
-        return abs(1 + n**2 * E)
 
     @property
     def a_B(self):
-        return self.particle.a_B
+        return self.system.a_B
     
     @property
     def R_y(self):
-        return self.particle.R_y
-    
-    def __str__(self):
-        return f"particle {self.particle.name} in state |l={self.l}⟩"
+        return self.system.R_y
+
+

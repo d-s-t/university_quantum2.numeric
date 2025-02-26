@@ -80,6 +80,22 @@ def is_notebook():
     except NameError:
         return False  # Probably standard Python interpreter
 
+def relative_error(E: float, n: int) -> float:
+    """
+    relative error of the energy
+    E: float
+        energy in Ry (Rydberg energy)
+    n: int
+        principal quantum number
+    """
+    return abs(1 + n**2 * E)
+
+def reduced_mass(*masses):
+    """
+    reduced mass of a system
+    """
+    return 1 / sum(1/m for m in masses)
+
 
 if __name__ == "__main__":
     from time import sleep
