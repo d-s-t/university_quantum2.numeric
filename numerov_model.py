@@ -80,16 +80,17 @@ class Numerov:
         """
         r = r * self.particle.a_B
         dr = r[1] - r[0]
-        if np.isscalar(E):
-            E = np.array([E])
-        u = np.zeros((r.size, E.shape[0]))
+        u = np.zeros_like(r) if np.isscalar(E) else np.zeros((r.size, E.size))
         E = E * self.particle.R_y
         u[1] = dr.value**(self.l+1)
         w = self.W(E, r)
         w = dr**2 * w / 12
+        w1 = 1 + w
+        w2 = 2 - 10 * w
         for i in range(2, len(r)):
-            u[i, :] = ((2 - w[i-1,:] * 10) * u[i-1,:] - (1 + w[i-2,:]) * u[i-2,:]) / (1 + w[i,:]).value
-        return (u / np.sqrt(np.trapezoid(u**2, r, axis=0)).value).squeeze()
+            u[i] = (w2[i-1] * u[i-1] - w1[i-2] * u[i-2]) / w1[i]
+        norm = np.sqrt(np.trapezoid(u**2, r, axis=0)).value
+        return u / norm
     
     def find_root(self, E_max: float, E_min: float, r: np.ndarray[float], D: int = 10):
         """
