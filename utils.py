@@ -63,7 +63,7 @@ def derivative_o4(u, dx):
     """
     Calculate the derivative of u with respect to x with acuracy O(dx^4)
     """
-    return (-u[2:] + 8*u[1:-1] - 8*u[1:-1] + u[:-2]) / (12*dx)
+    return (u[:-4] - 8*u[1:-3] + 8*u[3:-1] - u[4:]) / (12*dx)
 
 def progress_bar_range(*n):
     """
