@@ -59,18 +59,17 @@ class Numerov:
         dr = r[1] - r[0]
         u = np.zeros_like(r.value) if np.isscalar(E) else np.zeros((r.size, E.size))
         u[1] = u1
-        u = u * dr.unit**-0.5
         E = E * self.R_y
         w = self.W(E, r)
-        w = dr**2 * w / 12
+        w = (dr**2 * w / 12).value
         w1 = 1 + w
         w2 = 2 - 10 * w
         for i in range(2, len(r)):
             u[i] = (w2[i-1] * u[i-1] - w1[i-2] * u[i-2]) / w1[i]
-        norm = np.sqrt(np.trapezoid(u**2, r, axis=0))
-        return u / norm
+        norm = np.sqrt(np.trapezoid(u**2, r.value, axis=0))
+        return (dr.unit**-0.5) * u / norm
     
-    def find_root(self, E_max: float, E_min: float, r: np.ndarray[float], D: int = 10):
+    def find_bound_energies(self, E_max: float, E_min: float, r: np.ndarray[float], D: int = 10):
         """
         find the eneergy where the wave function u(R,E) = 0
 
@@ -84,54 +83,24 @@ class Numerov:
         D: int (optional)
             Number of devisions to make in the search for the root
         """
-        E_list = []
-        self.find_root_helper(E_list, E_max, E_min, r, D)
-        print()
-        return np.array(E_list)
-        
+        while True:
+            E_mid = np.linspace(E_min, E_max, D + 1)
+            uR_mid = self.u(r, E_mid, range=range)[-1]
+            if np.any(uR_mid == 0):
+                print()
+                return E_mid[uR_mid == 0]
+            sign_change_indices = np.where(uR_mid[1:] * uR_mid[:-1] < 0)[0]
+            if len(sign_change_indices) == 0:
+                print()
+                raise ValueError("No root in the given range (or even number of roots)")
+            idx = sign_change_indices[0]
+            E_min, E_max = E_mid[idx], E_mid[idx + 1]
+            u_min, u_max = uR_mid[idx], uR_mid[idx + 1]
+            print(f"diff={abs(E_max - E_min):.0e}, {u_min=:.0e}, {u_max=:.0e}", end='\r', flush=True)
+            if (E_max + E_min) / 2 in (E_max, E_min):
+                print()
+                return E_min if abs(uR_mid[idx]) < abs(uR_mid[idx + 1]) else E_max
 
-
-    def find_root_helper(self,
-                         E_list: list[tuple[int, np.ndarray[float]]],
-                         E_max: np.ndarray[float],
-                         E_min: np.ndarray[float],
-                         r: np.ndarray[float],
-                         D: int = 10,
-                         u_min: np.ndarray[float] = -np.inf,
-                         u_max: np.ndarray[float] = np.inf
-                         ) -> None:
-        """
-        find the energy E where the wave function u(R,E) = 0
-
-        E_max: float
-            Maximum energy to search for the root as a multiple of the Rydberg energy
-        E_min: float
-            Minimum energy to search for the root as a multiple of the Rydberg energy
-        r: np.ndarray[float]
-            Array of distances in fm
-            shape: (N,)
-        D: int (optional)
-            Number of devisions to make in the search for the root
-        u_min: float
-            wave function at R for the minimum energy
-        u_max: float
-            wave function at the maximum energy
-
-        returns: list[float]
-            list of energies where the wave function is zero at R
-        """
-        mid = (E_max + E_min) / 2
-        if mid in (E_max, E_min):
-            con = abs(u_min) < abs(u_max)
-            E_list.append(E_min * con + E_max * ~con)
-            return
-        print(f"diff={abs(E_max - E_min):.0e}, {u_min=:.0e}, {u_max=:.0e}", end='\r', flush=True)
-        E_bounds = np.linspace(E_min, E_max, D + 1)
-        u = self.u(r, E_bounds, range=range)[-1]
-        # u shape: (D+1,)
-        for i in range(D):
-            if u[i]*u[i+1]<0:
-                self.find_root_helper(E_list, E_bounds[i], E_bounds[i+1], r, D, u[i], u[i+1])
 
     def find_bound_energy_alt(self, r: np.ndarray[float], E_max: float, D: int = 10):
         """
@@ -145,5 +114,6 @@ class Numerov:
     @property
     def R_y(self):
         return self.system.R_y
+    
 
 
