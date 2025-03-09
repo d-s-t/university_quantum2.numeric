@@ -21,26 +21,29 @@ def Vc(sys: TwoBodySystem) -> Callable[[ndarray[Quantity["fm"]]], ndarray[Quanti
     return V
 
 def get_non_rel_W(sys: TwoBodySystem, l, Vc=Vc) -> Callable[[ndarray[Quantity["MeV"]],ndarray[Quantity["fm"]]], ndarray[Quantity["fm-2"]]]:
-    from numpy import newaxis, isscalar
     V = Vc(sys)
     L = l*(l+1)
     A = 2 * sys.mu / const.hbar**2
+    @W_dec
     def W(E, r):
-        if not isscalar(E):
-            r = r[:, newaxis]
         return (A * (E-V(r)) - (L / r**2)).to('fm-2')
     return W
 
 
 def get_rel_W(sys: TwoBodySystem, l, Vc=Vc) -> Callable[[ndarray[Quantity["MeV"]],ndarray[Quantity["fm"]]], ndarray[Quantity["fm-2"]]]:
-    from numpy import newaxis, isscalar
     V = Vc(sys)
     L = l*(l+1)
-    Em = sys.mu * const.c**2
+    mc2 = sys.mu * const.c**2
+    @W_dec
     def W(E, r):
-        if not isscalar(E):
-            r = r[:, newaxis]
-        return (((E + Em - V(r))**2 - Em**2)/(const.hbarc**2) - (L / r**2)).to('fm-2')
+        return (((E + mc2 - V(r))**2 - mc2**2)/(const.hbarc**2) - (L / r**2)).to('fm-2')
     return W
 
 
+def W_dec(W: Callable[[ndarray[Quantity["MeV"]],ndarray[Quantity["fm"]]], ndarray[Quantity["fm-2"]]]):
+    from numpy import newaxis, isscalar
+    def W_inner(E,r):
+        if not isscalar(E) and E.squeeze().ndim == 1:
+            r = r[:, newaxis]
+        return W(E,r)
+    return W_inner
